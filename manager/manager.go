@@ -46,19 +46,21 @@ type CommandOutput struct {
 
 // Manager handles the clients interfacing with AWS.
 type Manager struct {
-	ssmClient    ssmiface.SSMAPI
-	s3Client     s3iface.S3API
-	ec2Client    ec2iface.EC2API
-	extendOutput bool
-	region       string
-	s3Bucket     string
-	s3KeyPrefix  string
+	ssmClient      ssmiface.SSMAPI
+	s3Client       s3iface.S3API
+	ec2Client      ec2iface.EC2API
+	extendOutput   bool
+	region         string
+	s3Bucket       string
+	s3KeyPrefix    string
+	commandComment string
 }
 
 type Opts struct {
-	ExtendOutput bool
-	S3Bucket     string
-	S3KeyPrefix  string
+	ExtendOutput   bool
+	S3Bucket       string
+	S3KeyPrefix    string
+	CommandComment string
 }
 
 // NewManager creates a new Manager from an AWS session and region.
@@ -76,6 +78,7 @@ func NewManager(sess *session.Session, region string, opts Opts) *Manager {
 	m.extendOutput = opts.ExtendOutput
 	m.s3Bucket = opts.S3Bucket
 	m.s3KeyPrefix = opts.S3KeyPrefix
+	m.commandComment = opts.CommandComment
 	return m
 }
 
@@ -225,7 +228,7 @@ func (m *Manager) RunCommand(instanceIds []string, name string, parameters map[s
 	input := &ssm.SendCommandInput{
 		InstanceIds:  aws.StringSlice(instanceIds),
 		DocumentName: aws.String(name),
-		Comment:      aws.String("Document triggered through ssm-sh."),
+		Comment:      aws.String(m.commandComment),
 		Parameters:   params,
 	}
 	if m.s3Bucket != "" {
