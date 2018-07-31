@@ -302,7 +302,13 @@ func (m *Manager) newCommandOutput(result *ssm.GetCommandInvocationOutput, err e
 	}
 
 	if err != nil {
-		return out, true
+		if strings.HasPrefix(err.Error(), "InvocationDoesNotExist") {
+			// Needs more time
+			out.Status = "Pending"
+			out.Error = nil
+		} else {
+			return out, true
+		}
 	}
 
 	switch out.Status {
